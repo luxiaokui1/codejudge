@@ -1,0 +1,31 @@
+﻿package com.codejudge.platform.service;
+
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.codejudge.platform.model.dto.post.PostQueryRequest;
+import com.codejudge.platform.model.entity.Post;
+import javax.annotation.Resource;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+
+/**
+ * 甯栧瓙鏈嶅姟娴嬭瘯
+ *
+ * @author <a href="https://github.com/liyupi">绋嬪簭鍛橀奔鐨?/a>
+ * @from <a href="https://yupi.icu">缂栫▼瀵艰埅鐭ヨ瘑鏄熺悆</a>
+ */
+@SpringBootTest
+class PostServiceTest {
+
+    @Resource
+    private PostService postService;
+
+    @Test
+    void searchFromEs() {
+        PostQueryRequest postQueryRequest = new PostQueryRequest();
+        postQueryRequest.setUserId(1L);
+        Page<Post> postPage = postService.searchFromEs(postQueryRequest);
+        Assertions.assertNotNull(postPage);
+    }
+
+}

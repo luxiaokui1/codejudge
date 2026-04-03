@@ -1,0 +1,67 @@
+﻿version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: codejudge-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: "123456"
+      MYSQL_DATABASE: codejudge
+    ports:
+      - "23306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./backend/codejudge-backend/sql/create_table.sql:/docker-entrypoint-initdb.d/01-create_table.sql
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p123456"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7
+    container_name: codejudge-redis
+    ports:
+      - "26379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend/codejudge-backend
+      dockerfile: Dockerfile
+    container_name: codejudge-backend
+    ports:
+      - "8121:8121"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/codejudge
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: "123456"
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: 6379
+      CODESANDBOX_TYPE: remote
+      SANDBOX_URL: http://sandbox:8090/executeCode
+
+  sandbox:
+    build:
+      context: ./sandbox/codejudge-sandbox
+      dockerfile: Dockerfile
+    container_name: codejudge-sandbox
+    ports:
+      - "8090:8090"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    privileged: true
+
+volumes:
+  mysql_data:
+

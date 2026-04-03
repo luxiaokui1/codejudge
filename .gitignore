@@ -1,0 +1,7 @@
+frontend/codejudge-frontend/node_modules/
+frontend/codejudge-frontend/dist/
+backend/codejudge-backend/target/
+sandbox/codejudge-sandbox/target/
+*.log
+*.err.log
+.DS_Store
