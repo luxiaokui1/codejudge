@@ -71,6 +71,33 @@ Instead of running submitted programs directly inside the main backend process, 
 
 This separation improves maintainability and makes it easier to evolve toward stricter resource isolation, additional languages, and container-based hardening.
 
+## Why the Project Needs a Sandbox
+
+A normal full-stack web app usually stops at request handling, database access, and API responses. An online judge is different because it must actually process user-submitted programs.
+
+If the main backend compiled and executed submissions directly, it would take on avoidable risk:
+
+- user code could consume excessive CPU or memory
+- infinite loops could block backend resources
+- temporary source files and compiled artifacts would pollute the application environment
+- invoking external toolchains directly inside the business service would reduce stability and observability
+
+By moving compilation and execution into a dedicated sandbox service, the backend stays focused on orchestration, persistence, and result evaluation.
+
+## Why Compilation Also Belongs in the Sandbox
+
+Compilation is not just a harmless preprocessing step. It still means invoking external compilers such as `javac` on untrusted user input, writing temporary files, producing class files or binaries, and consuming system resources.
+
+For that reason, CodeJudge sends both compilation and execution to the sandbox. The sandbox is responsible for:
+
+- creating a temporary workspace for submitted code
+- compiling the submission with the correct language toolchain
+- executing the compiled program with judge inputs
+- collecting stdout, stderr, runtime, and other execution metadata
+- returning structured results to the backend judge service
+
+This keeps the core backend cleaner and makes the architecture safer, easier to scale, and easier to extend to more languages in the future.
+
 ## Implementation Highlights
 
 - Clear separation between presentation, API, and execution layers
@@ -85,7 +112,7 @@ This separation improves maintainability and makes it easier to evolve toward st
 ```text
 CodeJudge/
 ├─ backend/
-│  └─ yucodejudge-backend-master/
+│  └─ codejudge-backend/
 ├─ frontend/
 │  └─ codejudge-frontend/
 ├─ sandbox/
